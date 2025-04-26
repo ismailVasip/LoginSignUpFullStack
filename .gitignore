@@ -1,0 +1,8 @@
+# ASP.NET Core
+/backend/bin/
+/backend/obj/
+
+# Flutter
+/frontend/build/
+/frontend/.dart_tool/
+/frontend/.packages
