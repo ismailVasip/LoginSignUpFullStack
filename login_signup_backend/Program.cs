@@ -1,5 +1,8 @@
+using AutoMapper;
+using login_signup_backend.interfaces;
 using login_signup_backend.models;
 using login_signup_backend.repositories;
+using login_signup_backend.services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,11 +27,18 @@ builder.Services.AddIdentity<User,IdentityRole>(opt => {
     opt.Password.RequireLowercase = true;
     opt.Password.RequireUppercase = true;
     opt.Password.RequiredLength = 8;
+    opt.Password.RequireNonAlphanumeric = false;
 
     opt.User.RequireUniqueEmail = true;
 })
     .AddEntityFrameworkStores<RepositoryContext>()
     .AddDefaultTokenProviders();
+
+
+//automapper configuration
+builder.Services.AddAutoMapper(typeof(Program));
+
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 

@@ -1,19 +1,42 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using login_signup_backend.dtos;
+using login_signup_backend.interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace login_signup_backend.controllers
 {
     [ApiController]
-    [Route("api/account")]
+    [Route("api/auth")]
     public class AccountController : ControllerBase
     {
-        private readonly ILogger<AccountController> _logger;
-        public AccountController(ILogger<AccountController> logger)
+        private readonly IAuthService _authService;
+
+        public AccountController(IAuthService authService)
         {
-            _logger = logger;
+            _authService = authService;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> RegisterUser([FromBody] UserForRegistrationDto request)
+        {
+            if (request == null)
+                return BadRequest("Payload cannot be null");
+                
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _authService.RegisterUserAsync(request);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.TryAddModelError(error.Code, error.Description);
+                }
+                return BadRequest(ModelState);
+            }
+            return StatusCode(201);
         }
     }
 }

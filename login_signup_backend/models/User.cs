@@ -11,5 +11,6 @@ namespace login_signup_backend.models
     {
         public string FullName { get; set; } = string.Empty;
         public Gender Gender { get; set;} = Gender.Unspecified;
+        public DateTime DateOfBirth { get; set; } = DateTime.Now;
     }
 }
