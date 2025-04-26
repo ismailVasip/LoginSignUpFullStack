@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\vasip\\Desktop\\login_signup\\login_signup.csproj": {}
+    "C:\\Users\\vasip\\Desktop\\login_signup_fullstack\\login_signup_backend\\login_signup.csproj": {}
   },
   "projects": {
-    "C:\\Users\\vasip\\Desktop\\login_signup\\login_signup.csproj": {
+    "C:\\Users\\vasip\\Desktop\\login_signup_fullstack\\login_signup_backend\\login_signup.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\vasip\\Desktop\\login_signup\\login_signup.csproj",
+        "projectUniqueName": "C:\\Users\\vasip\\Desktop\\login_signup_fullstack\\login_signup_backend\\login_signup.csproj",
         "projectName": "login_signup",
-        "projectPath": "C:\\Users\\vasip\\Desktop\\login_signup\\login_signup.csproj",
+        "projectPath": "C:\\Users\\vasip\\Desktop\\login_signup_fullstack\\login_signup_backend\\login_signup.csproj",
         "packagesPath": "C:\\Users\\vasip\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\vasip\\Desktop\\login_signup\\obj\\",
+        "outputPath": "C:\\Users\\vasip\\Desktop\\login_signup_fullstack\\login_signup_backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\vasip\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -48,6 +48,14 @@
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[8.0.11, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
