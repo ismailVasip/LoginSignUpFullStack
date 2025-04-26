@@ -1,4 +1,6 @@
+using login_signup_backend.models;
 using login_signup_backend.repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,17 @@ builder.Services.AddDbContext<RepositoryContext>(options => {
     options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection"));
 });
 
+builder.Services.AddIdentity<User,IdentityRole>(opt => {
+    opt.Password.RequireDigit = true;
+    opt.Password.RequireLowercase = true;
+    opt.Password.RequireUppercase = true;
+    opt.Password.RequiredLength = 8;
+
+    opt.User.RequireUniqueEmail = true;
+})
+    .AddEntityFrameworkStores<RepositoryContext>()
+    .AddDefaultTokenProviders();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -28,6 +41,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

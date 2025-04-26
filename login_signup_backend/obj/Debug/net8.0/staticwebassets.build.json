@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "BdKfw9LpU1RvBYIIKJnTSPsXZcgkMKg5sseS13LpSfg=",
+  "Source": "login_signup",
+  "BasePath": "_content/login_signup",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
