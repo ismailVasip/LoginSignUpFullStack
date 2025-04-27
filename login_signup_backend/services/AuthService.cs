@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using AutoMapper;
 using login_signup_backend.dtos;
@@ -18,20 +19,34 @@ namespace login_signup_backend.services
     private readonly IConfiguration _configuration;
     private User? _user;
 
-    public AuthService(IMapper mapper, UserManager<User> userManager,IConfiguration configuration)
+    public AuthService(IMapper mapper, UserManager<User> userManager, IConfiguration configuration)
     {
       _mapper = mapper;
       _userManager = userManager;
       _configuration = configuration;
     }
 
-    public async Task<string> CreateTokenAsync()
+    public async Task<TokenDto> CreateTokenAsync(bool populateExp)
     {
       var signinCredentials = GetSignInCredentials();
       var claims = await GetClaims();
       var tokenOptions = GenerateTokenOptions(signinCredentials, claims);
 
-      return new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+      var refreshToken = GenerateRefreshToken();
+      _user!.RefreshToken = refreshToken;
+
+      if(populateExp)
+        _user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
+      
+      await _userManager.UpdateAsync(_user);
+
+      var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+
+      return new TokenDto
+      {
+        AccessToken = accessToken,
+        RefreshToken = refreshToken
+      };
     }
 
     public async Task<IdentityResult> RegisterUserAsync(UserForRegistrationDto request)
@@ -129,5 +144,60 @@ namespace login_signup_backend.services
 
       return tokenOptions;
     }
+    private string GenerateRefreshToken()
+    {
+      var randomNumber = new byte[32];
+      using (var rng = RandomNumberGenerator.Create())
+      {
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
+      }
+    }
+    private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+    {
+      var jwtSettings = _configuration.GetSection("JwtSetting");
+      var secretKey = jwtSettings["secretKey"];
+
+      var tokenValidationParameters = new TokenValidationParameters
+      {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["validIssuer"],
+        ValidAudience = jwtSettings["validAudience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!))
+      };
+
+      var tokenHandler = new JwtSecurityTokenHandler();
+      SecurityToken securityToken;
+
+      var principal = tokenHandler.ValidateToken(token, tokenValidationParameters,
+          out securityToken);
+
+      var jwtSecurityToken = securityToken as JwtSecurityToken;
+      if (jwtSecurityToken is null ||
+          !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+          StringComparison.InvariantCultureIgnoreCase))
+      {
+        throw new SecurityTokenException("Invalid token.");
+      }
+      return principal;
+    }
+
+    public async Task<TokenDto> RefreshTokenAsync(TokenDto tokenDto)
+    {
+      var principal = GetPrincipalFromExpiredToken(tokenDto.AccessToken);
+      var user = await _userManager.FindByNameAsync(principal.Identity!.Name!);
+
+      if (user is null ||
+          user.RefreshToken != tokenDto.RefreshToken ||
+          user.RefreshTokenExpiryTime <= DateTime.Now)
+        throw new Exception("Invalid client request.The tokenDto has some invalid values.");
+
+      _user = user;
+      return await CreateTokenAsync(populateExp: false);
+    }
+
   }
 }

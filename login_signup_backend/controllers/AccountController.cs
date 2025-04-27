@@ -51,15 +51,23 @@ namespace login_signup_backend.controllers
                 return BadRequest(ModelState);
             }
 
-            if(!await _authService.ValidateUserAsync(request))
+            if (!await _authService.ValidateUserAsync(request))
                 return Unauthorized();//401
 
-            return Ok(
-                new 
-                {
-                    Token = await _authService.CreateTokenAsync()
-                }
-            );
+            var tokenDto = await _authService.CreateTokenAsync(populateExp: true);
+
+            return Ok(tokenDto);
+        }
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] TokenDto tokenDto)
+        {
+            if (tokenDto == null)
+                return BadRequest("TokenDto cannot be null");
+
+            var tokenDtoToReturn = await _authService
+                .RefreshTokenAsync(tokenDto);
+                
+            return Ok(tokenDtoToReturn);
         }
     }
 }
