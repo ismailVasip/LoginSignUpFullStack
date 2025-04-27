@@ -1,4 +1,5 @@
 using System.Text;
+using AspNetCoreRateLimit;
 using AutoMapper;
 using login_signup_backend.interfaces;
 using login_signup_backend.models;
@@ -64,8 +65,28 @@ builder.Services.AddAuthentication(opt => {
         ValidAudience = jwtSettings["validAudience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!))
     };
-})
-;
+});
+
+//rate limiting configuration
+builder.Services.AddMemoryCache();
+var rateLimitRules = new List<RateLimitRule>()
+{
+    new RateLimitRule()
+    {
+        Endpoint = "*",
+        Limit = 3,
+        Period = "1m"
+    }
+};
+builder.Services.Configure<IpRateLimitOptions>(opt => {
+     opt.GeneralRules = rateLimitRules;
+});
+builder.Services.AddSingleton<IRateLimitCounterStore,MemoryCacheRateLimitCounterStore>();
+builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+builder.Services.AddHttpContextAccessor();
+
 
 var app = builder.Build();
 
@@ -77,6 +98,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseIpRateLimiting();
 
 app.UseAuthentication();
 app.UseAuthorization();
