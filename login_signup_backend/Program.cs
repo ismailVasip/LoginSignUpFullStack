@@ -1,14 +1,17 @@
+using System.Text;
 using AutoMapper;
 using login_signup_backend.interfaces;
 using login_signup_backend.models;
 using login_signup_backend.repositories;
 using login_signup_backend.services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();  
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -18,11 +21,13 @@ builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
 //DB configuration - IOC ye kayıt yapıyoruz
-builder.Services.AddDbContext<RepositoryContext>(options => {
+builder.Services.AddDbContext<RepositoryContext>(options =>
+{
     options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection"));
 });
 
-builder.Services.AddIdentity<User,IdentityRole>(opt => {
+builder.Services.AddIdentity<User, IdentityRole>(opt =>
+{
     opt.Password.RequireDigit = true;
     opt.Password.RequireLowercase = true;
     opt.Password.RequireUppercase = true;
@@ -39,6 +44,28 @@ builder.Services.AddIdentity<User,IdentityRole>(opt => {
 builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+
+//jwt configuration
+var jwtSettings = builder.Configuration.GetSection("JwtSetting");
+var secretKey = jwtSettings["secretKey"];
+
+builder.Services.AddAuthentication(opt => {
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+}).AddJwtBearer(opt => {
+    opt.TokenValidationParameters = new TokenValidationParameters{
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["validIssuer"],
+        ValidAudience = jwtSettings["validAudience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!))
+    };
+})
+;
 
 var app = builder.Build();
 
