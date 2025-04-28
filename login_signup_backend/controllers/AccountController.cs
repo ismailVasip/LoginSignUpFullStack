@@ -20,33 +20,35 @@ namespace login_signup_backend.controllers
         public async Task<IActionResult> RegisterUser([FromBody] UserForRegistrationDto request)
         {
             if (request == null)
-                return BadRequest("Payload cannot be null");
+                return BadRequest(new { message = "Payload cannot be null" });
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values
+                                        .SelectMany(v => v.Errors)
+                                        .Select(e => e.ErrorMessage)
+                                        .ToList();
+
+                return BadRequest(new { message = "Validation Failed", errors });
             }
 
             var result = await _authService.RegisterUserAsync(request);
 
             if (!result.Succeeded)
             {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.TryAddModelError(error.Code, error.Description);
-                }
-                return BadRequest(ModelState);
+                var errors = result.Errors.Select(e => e.Description).ToList();
+                return BadRequest(new { message = "Registration Failed", errors });
             }
 
             var user = await _authService.GetUserByEmailAsync(request.Email);
             if (user == null)
             {
-                return BadRequest("An error occurred while retrieving the user to send email.");
+                return BadRequest(new { message = "An error occurred while retrieving the user to send email." });
             }
             await _authService.CreateAndSendConfirmationEmailAsync(user);
 
 
-            return StatusCode(201);
+            return StatusCode(201, new { message = "Registration successful. Please confirm your email." });
         }
 
         [HttpPost("login")]
