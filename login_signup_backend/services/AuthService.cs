@@ -248,5 +248,48 @@ namespace login_signup_backend.services
     {
       return await _userManager.FindByEmailAsync(email);
     }
+
+    public async Task ForgotPasswordAsync(User user)
+    {
+      var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+      var encodedToken = WebUtility.UrlEncode(token);
+      var confirmationLink = $"https://localhost:7288/forgot-password?userId={user.Id}&token={encodedToken}";
+
+      var mailMessage = new MailMessage
+      {
+        From = new MailAddress(_mailSettings.SenderEmail!, _mailSettings.SenderName),
+        Subject = "Şifre Sıfırlama",
+        Body = $"Şifrenizi sıfırlamak için aşağıdaki linke tıklayın:\n\n{confirmationLink}",
+        IsBodyHtml = false
+      };
+
+      mailMessage.To.Add(user.Email!);
+
+      using (var client = new SmtpClient(_mailSettings.SmtpServer, _mailSettings.SmtpPort))
+      {
+        client.Credentials = new NetworkCredential(_mailSettings.SenderEmail, _mailSettings.SenderPassword);
+        client.EnableSsl = true;
+
+        await client.SendMailAsync(mailMessage);
+      }
+    }
+
+    public async Task<IdentityResult> ResetPasswordAsync(ResetPasswordDto request)
+    {
+      var user = await _userManager.FindByIdAsync(request.UserId);
+      if (user == null)
+      {
+        return IdentityResult.Failed(new IdentityError { Description = "User could not found." });
+      }
+
+      // Decode the token
+      var decodedToken = WebUtility.UrlDecode(request.Token);
+
+      var result = await _userManager.ResetPasswordAsync(
+                    user, decodedToken, request.Password);
+
+      return result;
+
+    }
   }
 }

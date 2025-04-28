@@ -41,7 +41,7 @@ namespace login_signup_backend.controllers
             var user = await _authService.GetUserByEmailAsync(request.Email);
             if (user == null)
             {
-                return BadRequest( "An error occurred while retrieving the user to send email.");
+                return BadRequest("An error occurred while retrieving the user to send email.");
             }
             await _authService.CreateAndSendConfirmationEmailAsync(user);
 
@@ -94,6 +94,72 @@ namespace login_signup_backend.controllers
                 var errorDescriptions = string.Join(", ", result.Errors.Select(e => e.Description));
 
                 return BadRequest($"Email confirmation failed. Errors: {errorDescriptions}");
+            }
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
+        {
+            try
+            {
+                if (request == null)
+                    return BadRequest("Payload cannot be null");
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                if (string.IsNullOrEmpty(request.Email))
+                {
+                    return BadRequest(new { message = "Please check your email address." });
+                }
+                var user = await _authService.GetUserByEmailAsync(request.Email);
+                if (user == null)
+                {
+                    return Ok(new { message = "User could not found!" });
+                }
+
+                await _authService.ForgotPasswordAsync(user);
+
+                return Ok(new { message = "Email sent." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
+        {
+            try
+            {
+                if (request == null)
+                    return BadRequest("Payload cannot be null");
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                if (request.Password != request.ConfirmPassword)
+                {
+                    return BadRequest(new { message = "Passwords are not matched!" });
+                }
+
+                var result = await _authService.ResetPasswordAsync(request);
+
+                if (result.Succeeded)
+                {
+                    return Ok(new { message = "Password reset successfully." });
+                }
+
+                var errors = result.Errors.Select(e => e.Description);
+                return BadRequest(new { message = "Password reset failed!", errors });
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"Something is happened: {ex.Message}" });
             }
         }
     }
