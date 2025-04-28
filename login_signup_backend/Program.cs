@@ -88,6 +88,10 @@ builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrateg
 builder.Services.AddHttpContextAccessor();
 
 
+//mail configuration
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

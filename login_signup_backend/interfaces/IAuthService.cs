@@ -1,4 +1,5 @@
 using login_signup_backend.dtos;
+using login_signup_backend.models;
 using Microsoft.AspNetCore.Identity;
 
 namespace login_signup_backend.interfaces
@@ -9,5 +10,8 @@ namespace login_signup_backend.interfaces
         Task<bool> ValidateUserAsync(UserForAuthDto request);
         Task<TokenDto> CreateTokenAsync(bool populateExp);
         Task<TokenDto> RefreshTokenAsync(TokenDto tokenDto);
+        Task CreateAndSendConfirmationEmailAsync(User user);
+        Task<IdentityResult> ConfirmEmailAsync(string userId, string token);
+        Task<User?> GetUserByEmailAsync(string email);
     }
 }

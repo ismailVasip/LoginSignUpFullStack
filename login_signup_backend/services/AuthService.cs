@@ -1,4 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -8,6 +10,7 @@ using login_signup_backend.interfaces;
 using login_signup_backend.models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace login_signup_backend.services
@@ -17,13 +20,16 @@ namespace login_signup_backend.services
     private readonly IMapper _mapper;
     private readonly UserManager<User> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly MailSettings _mailSettings;
+
     private User? _user;
 
-    public AuthService(IMapper mapper, UserManager<User> userManager, IConfiguration configuration)
+    public AuthService(IMapper mapper, UserManager<User> userManager, IConfiguration configuration, IOptions<MailSettings> mailSettings)
     {
       _mapper = mapper;
       _userManager = userManager;
       _configuration = configuration;
+      _mailSettings = mailSettings.Value;
     }
 
     public async Task<TokenDto> CreateTokenAsync(bool populateExp)
@@ -35,9 +41,9 @@ namespace login_signup_backend.services
       var refreshToken = GenerateRefreshToken();
       _user!.RefreshToken = refreshToken;
 
-      if(populateExp)
+      if (populateExp)
         _user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
-      
+
       await _userManager.UpdateAsync(_user);
 
       var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
@@ -90,6 +96,7 @@ namespace login_signup_backend.services
       {
         await _userManager.AddToRolesAsync(user, request.Roles);
       }
+
       return result;
     }
 
@@ -199,5 +206,47 @@ namespace login_signup_backend.services
       return await CreateTokenAsync(populateExp: false);
     }
 
+    public async Task CreateAndSendConfirmationEmailAsync(User user)
+    {
+      var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+      var encodedToken = WebUtility.UrlEncode(token);
+      var confirmationLink = $"https://localhost:7288/verify-email?userId={user.Id}&token={encodedToken}";
+
+      var mailMessage = new MailMessage
+      {
+        From = new MailAddress(_mailSettings.SenderEmail!, _mailSettings.SenderName),
+        Subject = "Email Doğrulama",
+        Body = $"Lütfen hesabınızı doğrulamak için aşağıdaki linke tıklayın:\n\n{confirmationLink}",
+        IsBodyHtml = false
+      };
+
+      mailMessage.To.Add(user.Email!);
+
+      using (var client = new SmtpClient(_mailSettings.SmtpServer, _mailSettings.SmtpPort))
+      {
+        client.Credentials = new NetworkCredential(_mailSettings.SenderEmail, _mailSettings.SenderPassword);
+        client.EnableSsl = true;
+
+        await client.SendMailAsync(mailMessage);
+      }
+    }
+    public async Task<IdentityResult> ConfirmEmailAsync(string userId, string token)
+    {
+      var user = await _userManager.FindByIdAsync(userId);
+      if (user == null)
+        return IdentityResult.Failed(new IdentityError { Description = "User could not found." });
+
+
+      // Decode the token
+      var decodedToken = WebUtility.UrlDecode(token);
+
+      var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+      return result;
+    }
+
+    public async Task<User?> GetUserByEmailAsync(string email)
+    {
+      return await _userManager.FindByEmailAsync(email);
+    }
   }
 }
