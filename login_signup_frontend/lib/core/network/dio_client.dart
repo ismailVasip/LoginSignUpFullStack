@@ -10,8 +10,9 @@ class DioClient {
         'Content-Type': 'application/json; charset=UTF-8'
       },
       responseType: ResponseType.json,
-      sendTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10)
+      sendTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      validateStatus: (status) => status != null && status >= 200 && status < 300
     ),
   )..interceptors.addAll([LoggerInterceptor()]);
 
@@ -59,6 +60,7 @@ class DioClient {
       );
       return response;
     } catch (e) {
+      /*A major advantage of using rethrow; instead of throw e; is that it preserves the stack trace of where the error first occurred. */
       rethrow;
     }
   }

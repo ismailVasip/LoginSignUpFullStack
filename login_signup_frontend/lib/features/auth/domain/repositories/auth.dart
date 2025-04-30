@@ -3,5 +3,5 @@ import 'package:login_signup_frontend/features/auth/data/models/signup_request_p
 
 abstract class AuthRepository{
 
-  Future<Either> signUp(SignUpRequestParams signUpReq);
+  Future<Either<String, dynamic>> signUp(SignUpRequestParams signUpReq);
 }

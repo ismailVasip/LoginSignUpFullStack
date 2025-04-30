@@ -1,5 +1,4 @@
 
-import 'package:login_signup_frontend/common/enums/gender.dart';
 
 class SignUpRequestParams {
   final String fullName;
@@ -7,9 +6,9 @@ class SignUpRequestParams {
   final String password;
   final String confirmPassword;
   final String phoneNumber;
-  final Gender gender;
-  final DateTime birthDate;
-  final List<String> roles = ['User']; // Default role is 'User'
+  final int gender;
+  final String birthDate;
+  final List<String> roles; // Default role is 'User'
 
   // final String accessToken;
   // final String refreshToken;
@@ -20,9 +19,10 @@ class SignUpRequestParams {
     required this.email,
     required this.password,
     required this.confirmPassword,
-    required this.phoneNumber,
     required this.gender,
+    required this.phoneNumber,
     required this.birthDate,
+    required this.roles,
     // required this.accessToken,
     // required this.refreshToken,
     // required this.refreshTokenExpireTime,
@@ -34,9 +34,13 @@ class SignUpRequestParams {
       'email': email,
       'password': password,
       'confirmPassword': confirmPassword,
-      'phoneNumber': phoneNumber,
       'gender': gender,
-      'birthDate': birthDate.millisecondsSinceEpoch,
+      'phoneNumber': phoneNumber,
+      'dateOfBirth': birthDate,
+      'roles': roles,
+      // 'accessToken': accessToken,
+      // 'refreshToken': refreshToken,
+      // 'refreshTokenExpireTime': refreshTokenExpireTime,
       // 'accessToken': accessToken,
       // 'refreshToken': refreshToken,
       // 'refreshTokenExpireTime': refreshTokenExpireTime,

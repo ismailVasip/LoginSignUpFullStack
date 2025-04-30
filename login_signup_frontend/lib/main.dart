@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:login_signup_frontend/core/configs/theme/app_theme.dart';
+import 'package:login_signup_frontend/features/auth/presentation/screens/welcome.dart';
 import 'package:login_signup_frontend/service_locator.dart';
 
 void main() {
@@ -23,7 +24,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.appTheme,
-      home: Container(),
+      home: WelcomePage(),
     );
   }
 }

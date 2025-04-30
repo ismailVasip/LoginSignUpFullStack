@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static final appTheme = ThemeData(
-    primaryColor: const Color(0xff3461FD),
-    scaffoldBackgroundColor: Colors.white,
+    primaryColor: Colors.black87,
+    scaffoldBackgroundColor: Colors.grey[300],
     brightness: Brightness.light,
     snackBarTheme: const SnackBarThemeData(
       backgroundColor: Colors.black87,
@@ -11,19 +11,17 @@ class AppTheme {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xffF5F9FE),
-      hintStyle: const TextStyle(
-        color: Color(0xff7C8BA0),
+      fillColor: Colors.grey.shade200,
+      hintStyle: TextStyle(
+        color:  Colors.grey[500],
         fontWeight: FontWeight.w400,
       ),
       contentPadding: const EdgeInsets.all(16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
+      enabledBorder: const OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.white),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey.shade400),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(

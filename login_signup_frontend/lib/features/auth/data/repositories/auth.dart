@@ -6,7 +6,7 @@ import 'package:login_signup_frontend/service_locator.dart';
 
 class AuthRepositoryImp extends AuthRepository {
   @override
-  Future<Either> signUp(SignUpRequestParams signUpReq) async {
+  Future<Either<String, dynamic>> signUp(SignUpRequestParams signUpReq) async {
     return serviceLocator<AuthApiService>().signUp(signUpReq);
   }
 }
