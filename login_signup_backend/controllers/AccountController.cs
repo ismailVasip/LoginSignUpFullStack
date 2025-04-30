@@ -48,7 +48,17 @@ namespace login_signup_backend.controllers
             await _authService.CreateAndSendConfirmationEmailAsync(user);
 
 
-            return StatusCode(201, new { message = "Registration successful. Please confirm your email." });
+            return StatusCode(201, new
+            {
+                message = "Registration successful. Please confirm your email.",
+                user = new ReturnResponceUser
+                {
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    Tokens = await _authService.CreateTokenAsync(populateExp:true,user),
+                    IsEmailConfirmed = user.EmailConfirmed
+                }
+            });
         }
 
         [HttpPost("login")]
@@ -65,7 +75,9 @@ namespace login_signup_backend.controllers
             if (!await _authService.ValidateUserAsync(request))
                 return Unauthorized();//401
 
-            var tokenDto = await _authService.CreateTokenAsync(populateExp: true);
+            var user = await _authService.GetUserByEmailAsync(request.Email);
+
+            var tokenDto = await _authService.CreateTokenAsync(populateExp: true,user!);
 
             return Ok(tokenDto);
         }

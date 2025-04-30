@@ -8,7 +8,7 @@ namespace login_signup_backend.interfaces
     {
         Task<IdentityResult> RegisterUserAsync(UserForRegistrationDto request);
         Task<bool> ValidateUserAsync(UserForAuthDto request);
-        Task<TokenDto> CreateTokenAsync(bool populateExp);
+        Task<TokenDto> CreateTokenAsync(bool populateExp,User user);
         Task<TokenDto> RefreshTokenAsync(TokenDto tokenDto);
         Task CreateAndSendConfirmationEmailAsync(User user);
         Task<IdentityResult> ConfirmEmailAsync(string userId, string token);

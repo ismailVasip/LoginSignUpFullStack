@@ -32,19 +32,19 @@ namespace login_signup_backend.services
       _mailSettings = mailSettings.Value;
     }
 
-    public async Task<TokenDto> CreateTokenAsync(bool populateExp)
+    public async Task<TokenDto> CreateTokenAsync(bool populateExp,User user)
     {
       var signinCredentials = GetSignInCredentials();
-      var claims = await GetClaims();
+      var claims = await GetClaims(user);
       var tokenOptions = GenerateTokenOptions(signinCredentials, claims);
 
       var refreshToken = GenerateRefreshToken();
-      _user!.RefreshToken = refreshToken;
+      user.RefreshToken = refreshToken;
 
       if (populateExp)
-        _user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
+        user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
 
-      await _userManager.UpdateAsync(_user);
+      await _userManager.UpdateAsync(user);
 
       var accessToken = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
 
@@ -120,15 +120,15 @@ namespace login_signup_backend.services
       return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
     }
 
-    private async Task<List<Claim>> GetClaims()
+    private async Task<List<Claim>> GetClaims(User user)
     {
       var claims = new List<Claim>()
             {
-                new Claim(ClaimTypes.Name, _user!.UserName!)
+                new Claim(ClaimTypes.Name, user.UserName!)
             };
 
       var roles = await _userManager
-          .GetRolesAsync(_user);
+          .GetRolesAsync(user);
 
       foreach (var role in roles)
       {
@@ -203,7 +203,7 @@ namespace login_signup_backend.services
         throw new Exception("Invalid client request.The tokenDto has some invalid values.");
 
       _user = user;
-      return await CreateTokenAsync(populateExp: false);
+      return await CreateTokenAsync(populateExp: false,user);
     }
 
     public async Task CreateAndSendConfirmationEmailAsync(User user)
