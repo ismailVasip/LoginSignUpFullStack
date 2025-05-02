@@ -6,12 +6,12 @@ import 'package:login_signup_frontend/features/auth/data/models/signup_request_p
 import 'package:login_signup_frontend/service_locator.dart';
 
 abstract class AuthApiService {
-  Future<Either<String, dynamic>> signUp(SignUpRequestParams signUpReq);
+  Future<Either> signUp(SignUpRequestParams signUpReq);
 }
 
 class AuthApiServiceImpl implements AuthApiService {
   @override
-  Future<Either<String, dynamic>> signUp(SignUpRequestParams signUpReq) async {
+  Future<Either> signUp(SignUpRequestParams signUpReq) async {
     try {
       final response = await serviceLocator<DioClient>().post(
         ApiUrls.register,
@@ -19,7 +19,7 @@ class AuthApiServiceImpl implements AuthApiService {
       );
 
       if (response.statusCode == 201) {
-        return Right(response.data);
+        return Right(response);
       } else {
         String errorMessage =
             "An unexpected server solution was provided (Code: ${response.statusCode}).";

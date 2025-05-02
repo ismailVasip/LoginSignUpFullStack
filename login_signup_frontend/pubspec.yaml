@@ -41,6 +41,7 @@ dependencies:
   logger: ^2.5.0
   intl_phone_field: ^3.2.0
   email_validator: ^3.0.0
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   flutter_test:
