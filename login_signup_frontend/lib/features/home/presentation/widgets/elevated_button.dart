@@ -1,13 +1,9 @@
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 
-class BasicWelcomeButton extends StatelessWidget {
-  final Function()? onPressed;
+class MyButton extends StatelessWidget {
+  final VoidCallback onPressed;
   final String title;
-  const BasicWelcomeButton({
-    super.key,
-    required this.onPressed,
-    required this.title,
-  });
+  const MyButton({super.key, required this.onPressed, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +17,7 @@ class BasicWelcomeButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
-          minimumSize: Size(
-            MediaQuery.of(context).size.width,
-            80,
-          ),
+          minimumSize: Size(MediaQuery.of(context).size.width, 80),
         ),
         child: Text(
           title,

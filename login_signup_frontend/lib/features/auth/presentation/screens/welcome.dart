@@ -1,9 +1,10 @@
 import "package:flutter/material.dart";
-import "package:login_signup_frontend/common/widgets/button/basic_welcome_button.dart";
+import "package:login_signup_frontend/common/widgets/button/basic_button.dart";
 import "package:login_signup_frontend/features/auth/presentation/screens/signin.dart";
 import "package:login_signup_frontend/features/auth/presentation/screens/signup.dart";
 
 class WelcomePage extends StatelessWidget {
+  static route() => MaterialPageRoute(builder: (context) => WelcomePage());
   const WelcomePage({super.key});
 
   @override
@@ -34,7 +35,7 @@ class WelcomePage extends StatelessWidget {
               const SizedBox(height: 25),
 
               //sign up
-              BasicWelcomeButton(
+              BasicButton(
                 onPressed: () {
                   Navigator.push(context, SignUpPage.route());
                 },
@@ -44,7 +45,7 @@ class WelcomePage extends StatelessWidget {
               const SizedBox(height: 25),
 
               //sign in
-              BasicWelcomeButton(
+              BasicButton(
                 onPressed: () {
                   Navigator.push(context, SignInPage.route());
                 },

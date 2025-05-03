@@ -4,8 +4,13 @@ import 'package:login_signup_frontend/features/auth/data/datasources/auth_api_se
 import 'package:login_signup_frontend/features/auth/data/datasources/auth_local_service.dart';
 import 'package:login_signup_frontend/features/auth/data/repositories/auth.dart';
 import 'package:login_signup_frontend/features/auth/domain/repositories/auth.dart';
+import 'package:login_signup_frontend/features/home/data/datasources/user_api_service.dart';
+import 'package:login_signup_frontend/features/home/data/repositories/user_repo.dart';
+import 'package:login_signup_frontend/features/home/domain/repositories/user_repo.dart';
+import 'package:login_signup_frontend/features/home/domain/usecases/get_users.dart';
 import 'package:login_signup_frontend/features/auth/domain/usecases/is_logged_in.dart';
 import 'package:login_signup_frontend/features/auth/domain/usecases/signup.dart';
+import 'package:login_signup_frontend/features/home/domain/usecases/logout.dart';
 
 final serviceLocator = GetIt.instance;
 
@@ -21,10 +26,18 @@ void setUpServiceLocator() {
     AuthLocalServiceImpl()
   );
 
+  serviceLocator.registerSingleton<UserApiService>(
+    UserApiDatasourceImpl()
+  );
+
 
   //Repositories
   serviceLocator.registerSingleton<AuthRepository>(
     AuthRepositoryImp()
+  );
+
+  serviceLocator.registerSingleton<UserRepo>(
+    UserRepoImp()
   );
 
   //Usecases
@@ -34,5 +47,12 @@ void setUpServiceLocator() {
 
   serviceLocator.registerSingleton<IsLoggedInUseCase>(
     IsLoggedInUseCase()
+  );
+
+  serviceLocator.registerSingleton<GetUsersUseCase>(
+    GetUsersUseCase()
+  );
+  serviceLocator.registerSingleton<LogoutUseCase>(
+    LogoutUseCase()
   );
 }
