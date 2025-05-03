@@ -36,8 +36,12 @@ namespace login_signup_backend.controllers
 
             if (!result.Succeeded)
             {
-                var errors = result.Errors.Select(e => e.Description).ToList();
-                return BadRequest(new { message = "Registration Failed", errors });
+                var errors = result.Errors?.Select(e => e.Description).ToList() ?? [];
+                return BadRequest(new
+                {
+                    message = "Registration failed",
+                    errors = errors.Count != 0 ? errors : ["An unknown error occurred"]
+                });
             }
 
             var user = await _authService.GetUserByEmailAsync(request.Email);
@@ -55,7 +59,7 @@ namespace login_signup_backend.controllers
                 {
                     FullName = user.FullName,
                     Email = user.Email,
-                    Tokens = await _authService.CreateTokenAsync(populateExp:true,user),
+                    Tokens = await _authService.CreateTokenAsync(populateExp: true, user),
                     IsEmailConfirmed = user.EmailConfirmed
                 }
             });
@@ -65,19 +69,24 @@ namespace login_signup_backend.controllers
         public async Task<IActionResult> LoginUser([FromBody] UserForAuthDto request)
         {
             if (request == null)
-                return BadRequest("Payload cannot be null");
+                return BadRequest(new { message = "Payload cannot be null" });
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values
+                                        .SelectMany(v => v.Errors)
+                                        .Select(e => e.ErrorMessage)
+                                        .ToList();
+
+                return BadRequest(new { message = "Validation Failed", errors });
             }
 
             if (!await _authService.ValidateUserAsync(request))
-                return Unauthorized();//401
+                return Unauthorized(new { message = "User could not found!" });//401
 
             var user = await _authService.GetUserByEmailAsync(request.Email);
 
-            var tokenDto = await _authService.CreateTokenAsync(populateExp: true,user!);
+            var tokenDto = await _authService.CreateTokenAsync(populateExp: true, user!);
 
             return Ok(tokenDto);
         }
@@ -117,11 +126,16 @@ namespace login_signup_backend.controllers
             try
             {
                 if (request == null)
-                    return BadRequest("Payload cannot be null");
+                    return BadRequest(new { message = "Payload cannot be null" });
 
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    var errors = ModelState.Values
+                                        .SelectMany(v => v.Errors)
+                                        .Select(e => e.ErrorMessage)
+                                        .ToList();
+
+                    return BadRequest(new { message = "Validation Failed", errors });
                 }
                 if (string.IsNullOrEmpty(request.Email))
                 {
@@ -149,7 +163,7 @@ namespace login_signup_backend.controllers
             try
             {
                 if (request == null)
-                    return BadRequest("Payload cannot be null");
+                    return BadRequest(new { message = "Payload cannot be null" });
 
                 if (!ModelState.IsValid)
                 {
@@ -164,7 +178,7 @@ namespace login_signup_backend.controllers
 
                 if (result.Succeeded)
                 {
-                    return Ok(new { message = "Password reset successfully." });
+                    return Ok(new { message = "Password reset successfully. You can login now." });
                 }
 
                 var errors = result.Errors.Select(e => e.Description);

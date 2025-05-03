@@ -32,7 +32,7 @@ namespace login_signup_backend.services
       _mailSettings = mailSettings.Value;
     }
 
-    public async Task<TokenDto> CreateTokenAsync(bool populateExp,User user)
+    public async Task<TokenDto> CreateTokenAsync(bool populateExp, User user)
     {
       var signinCredentials = GetSignInCredentials();
       var claims = await GetClaims(user);
@@ -85,11 +85,12 @@ namespace login_signup_backend.services
 
       if (!result.Succeeded)
       {
-        return IdentityResult.Failed(new IdentityError
-        {
-          Code = "CreateUserError",
-          Description = "Could not create user."
-        });
+        var filteredErrors = result.Errors
+       .Where(error => !error.Code.Contains("UserName") &&
+                      !error.Description.Contains("User name"))
+       .ToArray();
+
+        return IdentityResult.Failed(filteredErrors);
       }
 
       if (request.Roles.Count != 0)
@@ -203,7 +204,7 @@ namespace login_signup_backend.services
         throw new Exception("Invalid client request.The tokenDto has some invalid values.");
 
       _user = user;
-      return await CreateTokenAsync(populateExp: false,user);
+      return await CreateTokenAsync(populateExp: false, user);
     }
 
     public async Task CreateAndSendConfirmationEmailAsync(User user)
