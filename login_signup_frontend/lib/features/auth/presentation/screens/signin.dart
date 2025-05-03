@@ -5,6 +5,8 @@ import 'package:login_signup_frontend/common/bloc/button/cubit/button_cubit.dart
 import 'package:login_signup_frontend/common/widgets/button/basic_auth_button.dart';
 import 'package:login_signup_frontend/features/auth/data/models/signin_request_params.dart';
 import 'package:login_signup_frontend/features/auth/domain/usecases/signin.dart';
+import 'package:login_signup_frontend/features/auth/presentation/screens/forgot_password.dart';
+import 'package:login_signup_frontend/features/auth/presentation/screens/signup.dart';
 import 'package:login_signup_frontend/features/auth/presentation/widgets/my_textformfield.dart';
 import 'package:login_signup_frontend/features/home/presentation/screens/home_page.dart';
 import 'package:login_signup_frontend/service_locator.dart';
@@ -109,9 +111,16 @@ class _SignUpPageState extends State<SignInPage> {
                               style: TextStyle(
                                 color: Colors.grey[700],
                                 fontWeight: FontWeight.w600,
-                                fontSize: 17
+                                fontSize: 17,
                               ),
-                              recognizer: TapGestureRecognizer()..onTap = () {},
+                              recognizer:
+                                  TapGestureRecognizer()
+                                    ..onTap = () {
+                                      Navigator.push(
+                                        context,
+                                        ForgotPasswordPage.route(),
+                                      );
+                                    },
                             ),
                           ],
                         ),
@@ -124,16 +133,49 @@ class _SignUpPageState extends State<SignInPage> {
                   //sign in button
                   Builder(
                     builder: (builderContext) {
-                      return BasicAppButton(onPressed: () {
-                        final email = emailController.text.trim();
-                        final password = passwordController.text.trim();
+                      return BasicAppButton(
+                        onPressed: () {
+                          final email = emailController.text.trim();
+                          final password = passwordController.text.trim();
 
-                        builderContext.read<ButtonCubit>().execute(
-                          usecase: serviceLocator<SignInUseCase>(),
-                          params: SignInRequestParams(email: email, password: password)
-                        );
-                      }, title: 'Sign In');
-                    }
+                          builderContext.read<ButtonCubit>().execute(
+                            usecase: serviceLocator<SignInUseCase>(),
+                            params: SignInRequestParams(
+                              email: email,
+                              password: password,
+                            ),
+                          );
+                        },
+                        title: 'Sign In',
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  //dont have an account?
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(text: 'Do not have an account?'),
+                        TextSpan(
+                          text: ' Register now',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          recognizer:
+                              TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    SignUpPage.route(),
+                                  );
+                                },
+                        ),
+                      ],
+                    ),
+                    style: TextStyle(color: Colors.grey[700], fontSize: 16),
                   ),
                 ],
               ),
