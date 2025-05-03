@@ -167,7 +167,12 @@ namespace login_signup_backend.controllers
 
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    var modelErrors = ModelState.Values
+                                        .SelectMany(v => v.Errors)
+                                        .Select(e => e.ErrorMessage)
+                                        .ToList();
+
+                    return BadRequest(new { message = "Validation Failed", errors = modelErrors });
                 }
                 if (request.Password != request.ConfirmPassword)
                 {
