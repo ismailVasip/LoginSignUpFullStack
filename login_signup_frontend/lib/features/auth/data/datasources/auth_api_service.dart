@@ -2,11 +2,13 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:login_signup_frontend/core/constants/api_urls.dart';
 import 'package:login_signup_frontend/core/network/dio_client.dart';
+import 'package:login_signup_frontend/features/auth/data/models/signin_request_params.dart';
 import 'package:login_signup_frontend/features/auth/data/models/signup_request_params.dart';
 import 'package:login_signup_frontend/service_locator.dart';
 
 abstract class AuthApiService {
   Future<Either> signUp(SignUpRequestParams signUpReq);
+  Future<Either> signIn(SignInRequestParams signInparams);
 }
 
 class AuthApiServiceImpl implements AuthApiService {
@@ -101,5 +103,66 @@ class AuthApiServiceImpl implements AuthApiService {
 
     // Fallback
     return responseData.toString();
+  }
+
+  @override
+  Future<Either> signIn(SignInRequestParams signInparams) async {
+    try {
+      final response = await serviceLocator<DioClient>().post(
+        ApiUrls.login,
+        data: signInparams.toMap(),
+      );
+      if (response.statusCode! >= 200 &&
+          response.statusCode! < 300) {
+        return Right(response);
+      } else {
+        String errorMessage =
+            "An unexpected server solution was provided (Code: ${response.statusCode}).";
+        if (response.data != null &&
+            response.data is Map &&
+            response.data.containsKey('message')) {
+          errorMessage = response.data['message'].toString();
+        }
+        return Left(errorMessage);
+      }
+    } on DioException catch (e) {
+      String errorMessage = "An unknown server error occurred.";
+
+      if (e.response?.data != null) {
+        final responseData = e.response!.data;
+
+        if (responseData is Map<String, dynamic>) {
+          errorMessage = _parseErrorResponse(responseData);
+        } else {
+          errorMessage = responseData.join('\n').toString();
+        }
+      }
+      // Timeout errors
+      else if ([
+        DioExceptionType.connectionTimeout,
+        DioExceptionType.sendTimeout,
+        DioExceptionType.receiveTimeout,
+      ].contains(e.type)) {
+        errorMessage =
+            "Connection timeout. Please check your internet connection.";
+      }
+      // Connection errors
+      else if ([
+        DioExceptionType.unknown,
+        DioExceptionType.connectionError,
+      ].contains(e.type)) {
+        errorMessage = "Network error. Could not connect to the server.";
+      }
+      // Other errors
+      else {
+        errorMessage =
+            e.message ??
+            "An unexpected error occurred. Please try again later.";
+      }
+
+      return Left(errorMessage);
+    } catch (e) {
+      return Left("An unexpected error occurred: ${e.toString()}");
+    }
   }
 }

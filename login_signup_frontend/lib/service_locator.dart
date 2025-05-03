@@ -4,6 +4,7 @@ import 'package:login_signup_frontend/features/auth/data/datasources/auth_api_se
 import 'package:login_signup_frontend/features/auth/data/datasources/auth_local_service.dart';
 import 'package:login_signup_frontend/features/auth/data/repositories/auth.dart';
 import 'package:login_signup_frontend/features/auth/domain/repositories/auth.dart';
+import 'package:login_signup_frontend/features/auth/domain/usecases/signin.dart';
 import 'package:login_signup_frontend/features/home/data/datasources/user_api_service.dart';
 import 'package:login_signup_frontend/features/home/data/repositories/user_repo.dart';
 import 'package:login_signup_frontend/features/home/domain/repositories/user_repo.dart';
@@ -54,5 +55,8 @@ void setUpServiceLocator() {
   );
   serviceLocator.registerSingleton<LogoutUseCase>(
     LogoutUseCase()
+  );
+  serviceLocator.registerSingleton<SignInUseCase>(
+    SignInUseCase()
   );
 }
