@@ -27,6 +27,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   //form key
   final _formKey = GlobalKey<FormState>();
 
+  final storage = const FlutterSecureStorage();
+
   @override
   void dispose() {
     newPasswordController.dispose();
@@ -40,6 +42,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       body: BlocListener<ButtonCubit, ButtonState>(
         listener: (context, state) {
           if (state is ButtonSuccessState) {
+            storage.delete(key: 'reset_token');
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             var snackbar = SnackBar(
               backgroundColor: Colors.orange,
@@ -138,7 +141,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                     .state
                                     .email;
 
-                            final storage = const FlutterSecureStorage();
+                            
                             var resetToken = await storage.read(
                               key: 'reset_token',
                             );
