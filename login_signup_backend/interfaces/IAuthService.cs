@@ -14,6 +14,10 @@ namespace login_signup_backend.interfaces
         Task<IdentityResult> ConfirmEmailAsync(string userId, string token);
         Task<User?> GetUserByEmailAsync(string email);
         Task ForgotPasswordAsync(User user);
+        Task<bool> VerifyResetCode(VerifyCodeDto request,User user);
+        string GenerateSecureResetToken(string userId);
+        string? ValidateResetToken(string token);
+        void InvalidateResetToken(string resetToken);
         Task<IdentityResult> ResetPasswordAsync(ResetPasswordDto request);
     }
 }

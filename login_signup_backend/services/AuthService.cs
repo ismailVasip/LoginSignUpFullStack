@@ -8,8 +8,10 @@ using AutoMapper;
 using login_signup_backend.dtos;
 using login_signup_backend.interfaces;
 using login_signup_backend.models;
+using login_signup_backend.repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -21,15 +23,20 @@ namespace login_signup_backend.services
     private readonly UserManager<User> _userManager;
     private readonly IConfiguration _configuration;
     private readonly MailSettings _mailSettings;
+    private readonly RepositoryContext _context;
+    private readonly Random _random = new Random();
+    private readonly IMemoryCache _memoryCache;
 
     private User? _user;
 
-    public AuthService(IMapper mapper, UserManager<User> userManager, IConfiguration configuration, IOptions<MailSettings> mailSettings)
+    public AuthService(IMapper mapper, UserManager<User> userManager, IConfiguration configuration, IOptions<MailSettings> mailSettings, RepositoryContext context, IMemoryCache memoryCache)
     {
       _mapper = mapper;
       _userManager = userManager;
       _configuration = configuration;
       _mailSettings = mailSettings.Value;
+      _context = context;
+      _memoryCache = memoryCache;
     }
 
     public async Task<TokenDto> CreateTokenAsync(bool populateExp, User user)
@@ -252,15 +259,30 @@ namespace login_signup_backend.services
 
     public async Task ForgotPasswordAsync(User user)
     {
-      var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-      var encodedToken = WebUtility.UrlEncode(token);
-      var confirmationLink = $"https://localhost:7288/forgot-password?userId={user.Id}&token={encodedToken}";
+      var code = _random.Next(0, 10000).ToString("D4");
+      var expiryTime = DateTime.UtcNow.AddMinutes(10);
+
+      var resetCodeEntry = new VerificationCode
+      {
+        UserId = user.Id,
+        Code = code,
+        ExpiryTimeUtc = expiryTime,
+        IsUsed = false
+      };
+
+      _context.PasswordResetCodes.Add(resetCodeEntry);
+      await _context.SaveChangesAsync();
+
+      //old way:
+      // var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+      // var encodedToken = WebUtility.UrlEncode(token);
+      // var confirmationLink = $"https://localhost:7288/forgot-password?userId={user.Id}&token={encodedToken}";
 
       var mailMessage = new MailMessage
       {
         From = new MailAddress(_mailSettings.SenderEmail!, _mailSettings.SenderName),
-        Subject = "Şifre Sıfırlama",
-        Body = $"Şifrenizi sıfırlamak için aşağıdaki linke tıklayın:\n\n{confirmationLink}",
+        Subject = "Şifre Sıfırlama Kodu",
+        Body = $"Şifrenizi sıfırlamak için doğrulama kodunuz: <{code}>\nBu kod 10 dakika geçerlidir.",
         IsBodyHtml = false
       };
 
@@ -277,20 +299,82 @@ namespace login_signup_backend.services
 
     public async Task<IdentityResult> ResetPasswordAsync(ResetPasswordDto request)
     {
-      var user = await _userManager.FindByIdAsync(request.UserId);
+      var validateTokenAndGetUserId = ValidateResetToken(request.Token);
+      if (validateTokenAndGetUserId == null)
+        return IdentityResult.Failed(new IdentityError { Description = "Invalid token." });
+
+      var user = await _userManager.FindByIdAsync(validateTokenAndGetUserId);
+
       if (user == null)
       {
         return IdentityResult.Failed(new IdentityError { Description = "User could not found." });
       }
 
-      // Decode the token
-      var decodedToken = WebUtility.UrlDecode(request.Token);
+      var identityResetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-      var result = await _userManager.ResetPasswordAsync(
-                    user, decodedToken, request.Password);
+      var result = await _userManager.ResetPasswordAsync(user, identityResetToken, request.Password);
 
       return result;
 
     }
+
+    public async Task<bool> VerifyResetCode(VerifyCodeDto request, User user)
+    {
+      var resetCodeEntry = await _context.PasswordResetCodes
+        .FirstOrDefaultAsync(prc => prc.UserId == user.Id &&
+                                     prc.Code == request.VerificationCode &&
+                                     !prc.IsUsed &&
+                                     prc.ExpiryTimeUtc > DateTime.UtcNow);
+
+      if (resetCodeEntry == null)
+      {
+        return false;
+      }
+
+      resetCodeEntry.IsUsed = true;
+
+      await _context.SaveChangesAsync();
+
+      return true;
+    }
+
+    public string GenerateSecureResetToken(string userId)
+    {
+      var tokenBytes = new byte[32];
+      using (var rng = RandomNumberGenerator.Create())
+      {
+        rng.GetBytes(tokenBytes);
+      }
+
+      // base64'e format 
+      var token = Convert.ToBase64String(tokenBytes)
+                         .Replace("+", "")
+                         .Replace("/", "")
+                         .Replace("=", "");
+
+      var cacheKey = $"ResetToken_{token}";
+      _memoryCache.Set(cacheKey, userId, TimeSpan.FromMinutes(10));
+
+      return token;
+    }
+
+    public string? ValidateResetToken(string token)
+    {
+      var cacheKey = $"ResetToken_{token}";
+      if (_memoryCache.TryGetValue(cacheKey, out string? userId))
+      {
+        return userId;
+      }
+
+      return null;
+    }
+    public void InvalidateResetToken(string resetToken)
+    {
+        if (string.IsNullOrWhiteSpace(resetToken))
+            return;
+
+        _memoryCache.Remove($"ResetToken_{resetToken}");
+    }
+
   }
 }

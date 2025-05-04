@@ -4,8 +4,9 @@ namespace login_signup_backend.dtos
 {
     public class ResetPasswordDto
     {
-        [Required(ErrorMessage = "UserId is required!")]
-        public string UserId { get; init; } = string.Empty;
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Token is required!")]
         public string Token { get; init; } = string.Empty;

@@ -147,9 +147,17 @@ namespace login_signup_backend.controllers
                     return Ok(new { message = "User could not found!" });
                 }
 
-                await _authService.ForgotPasswordAsync(user);
+                try
+                {
+                    await _authService.ForgotPasswordAsync(user);
 
-                return Ok(new { message = "Email sent." });
+                    return Ok(new { message = "The password recovery code has been sent to your email address." });
+
+                }
+                catch (Exception)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while sending the code." });
+                }
             }
             catch (Exception ex)
             {
@@ -183,6 +191,7 @@ namespace login_signup_backend.controllers
 
                 if (result.Succeeded)
                 {
+                    _authService.InvalidateResetToken(request.Token);
                     return Ok(new { message = "Password reset successfully. You can login now." });
                 }
 
@@ -194,6 +203,40 @@ namespace login_signup_backend.controllers
             {
                 return BadRequest(new { message = $"Something is happened: {ex.Message}" });
             }
+        }
+
+        [HttpPost("verify-reset-code")]
+        public async Task<IActionResult> VerifyResetCode([FromBody] VerifyCodeDto request)
+        {
+            if (request == null)
+                return BadRequest(new { message = "Payload cannot be null" });
+
+            if (!ModelState.IsValid)
+            {
+                var modelErrors = ModelState.Values
+                                    .SelectMany(v => v.Errors)
+                                    .Select(e => e.ErrorMessage)
+                                    .ToList();
+
+                return BadRequest(new { message = "Validation Failed", errors = modelErrors });
+            }
+            var user = await _authService.GetUserByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return BadRequest(new { message = "User could not found!" });
+            }
+
+            var result = await _authService.VerifyResetCode(request,user);
+
+            if(!result)
+            {
+                return BadRequest(new { message = "Invalid reset code." });
+            }
+
+            var resetToken = _authService.GenerateSecureResetToken(user.Id);
+
+            return Ok(new VerifyResetCodeResponseDto{ResetToken = resetToken});
+
         }
     }
 }
