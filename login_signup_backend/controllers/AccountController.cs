@@ -144,14 +144,14 @@ namespace login_signup_backend.controllers
                 var user = await _authService.GetUserByEmailAsync(request.Email);
                 if (user == null)
                 {
-                    return Ok(new { message = "User could not found!" });
+                    return Ok(new { message = "If the email exists, we’ve sent a password reset code." });
                 }
 
                 try
                 {
                     await _authService.ForgotPasswordAsync(user);
 
-                    return Ok(new { message = "The password recovery code has been sent to your email address." });
+                    return Ok(new { message = "If the email exists, we’ve sent a password reset code." });
 
                 }
                 catch (Exception)
@@ -223,14 +223,14 @@ namespace login_signup_backend.controllers
             var user = await _authService.GetUserByEmailAsync(request.Email);
             if (user == null)
             {
-                return BadRequest(new { message = "User could not found!" });
+                return BadRequest(new { message = "Invalid email or verification code." });
             }
 
             var result = await _authService.VerifyResetCode(request,user);
 
             if(!result)
             {
-                return BadRequest(new { message = "Invalid reset code." });
+                return BadRequest(new { message = "Invalid email or verification code." });
             }
 
             var resetToken = _authService.GenerateSecureResetToken(user.Id);

@@ -7,7 +7,7 @@ namespace login_signup_backend.models
 {
     public class VerificationCode
     {
-        public string Id { get; set; } = string.Empty;
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         public string UserId { get; set; } = string.Empty; // Foreign Key
         public string Code { get; set; } = string.Empty;
         public DateTime ExpiryTimeUtc { get; set; } = DateTime.UtcNow;
