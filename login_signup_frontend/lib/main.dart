@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:login_signup_frontend/common/bloc/auth/auth_cubit.dart';
 import 'package:login_signup_frontend/common/bloc/button/cubit/button_cubit.dart';
 import 'package:login_signup_frontend/core/configs/theme/app_theme.dart';
+import 'package:login_signup_frontend/features/auth/presentation/bloc/reset_password_cubit.dart';
 import 'package:login_signup_frontend/features/auth/presentation/screens/welcome.dart';
 import 'package:login_signup_frontend/features/home/presentation/bloc/users_display_cubit.dart';
 import 'package:login_signup_frontend/features/home/presentation/screens/home_page.dart';
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => AuthStateCubit()..appStarted()),
         BlocProvider(create: (context) => UsersDisplayCubit()),
         BlocProvider(create: (context) => ButtonCubit()),
+        BlocProvider(create: (context) => ResetPasswordCubit())
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

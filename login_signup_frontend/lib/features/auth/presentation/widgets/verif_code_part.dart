@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class OtpInput extends StatefulWidget {
-  const OtpInput({super.key});
+  final ValueChanged<String> onCodeChanged;
+  const OtpInput({super.key, required this.onCodeChanged});
 
   @override
   State<OtpInput> createState() => _OtpInputState();
 }
 
 class _OtpInputState extends State<OtpInput> {
-  final List<TextEditingController> _controllers =
-      List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
 
   @override
@@ -46,10 +49,10 @@ class _OtpInputState extends State<OtpInput> {
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 24, color: Colors.black),
             decoration: const InputDecoration(
-              counterText: '',// Remove the counter text
+              counterText: '', // Remove the counter text
               border: InputBorder.none,
               filled: true,
-              fillColor: Colors.white, 
+              fillColor: Colors.white,
             ),
             onChanged: (value) {
               if (value.length == 1) {
@@ -59,6 +62,13 @@ class _OtpInputState extends State<OtpInput> {
                   _focusNodes[index].unfocus();
                 }
               }
+              Future.delayed(Duration(milliseconds: 50), () {
+                final code = _controllers.map((c) => c.text).join();
+                if (code.length == 4) {
+                  widget.onCodeChanged(code);
+                }
+              });
+              
             },
           ),
         );

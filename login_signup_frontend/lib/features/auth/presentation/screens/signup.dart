@@ -50,7 +50,6 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
-  void createAccount(BuildContext builderContext, BuildContext buildContext) {}
 
   @override
   Widget build(BuildContext context) {

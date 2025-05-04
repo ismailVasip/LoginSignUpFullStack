@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:login_signup_frontend/core/usecase/usecase.dart';
+import 'package:login_signup_frontend/features/auth/data/models/forgot_password_params.dart';
 
 part 'button_state.dart';
 
@@ -19,7 +20,11 @@ class ButtonCubit extends Cubit<ButtonState> {
           emit(ButtonFailureState(errorMessage: error.toString()));
         },
         (data) {
-          emit(ButtonSuccessState());
+          if(params is ForgotPasswordParams){
+            emit(ButtonSuccessState(email: params.email));
+          } else {
+            emit(ButtonSuccessState());
+          }
         },
       );
     } catch (e) {
