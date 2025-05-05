@@ -4,6 +4,8 @@
 
 This project is a robust, secure authentication backend system built with ASP.NET Core. It implements a clean architecture approach with modern security practices, rate limiting, and JWT authentication to provide a professional-grade solution for user management.
 
+## Project Video :https://drive.google.com/file/d/1t9bfICq_LJFC5KQqHueGBharCat4Zz0W/view?usp=sharing
+
 ## Architecture
 
 - **Presentation Layer**: API controllers handling HTTP requests
